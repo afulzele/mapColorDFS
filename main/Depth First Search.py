@@ -5,6 +5,11 @@ colored = {}
 
 singleton = 0
 
+def check_valid(graph):
+    for node,nexts in graph.items():
+        assert(node not in nexts) # # no node linked to itself
+        for next in nexts:
+            assert(next in graph and node in graph[next]) # A linked to B implies B linked to A
 #DFS
 def solve_problem_DFS(state,country,country_colors):
     increment_color = 0
@@ -204,30 +209,30 @@ united_states_of_america = {
     AL: {GA, FL, TN, MS},
     AK: {WA},
     AZ: {CA, NV, UT, CO, NM},
-    AR: {MO, OK, TX, LA, TN, MS},
+    AR: {MO, OK, TX, LA, TN, MS },
     CA: {OR, NV, AZ,HI},
     CO: {WY, NE, KS, OK, NM, AZ, UT},
-    CT: {NY,MA},
-    DE: {MD,PA},
+    CT: {NY,RI,MA},
+    DE: {MD,PA,NJ},
     FL: {AL, GA},
     GA: {SC, NC, TN, AL, FL},
     HI: {CA},
     ID: {WA, MT, OR, WY, UT, NV},
     IL: {WI, IA, MO, KY, IN, MI},
-    IN: {MI, WI, IL, KY, OH},
+    IN: {MI, IL, KY, OH},
     IA: {MN, SD, NE, MO, WI, IL},
     KS: {NE, CO, OK, MO},
     KY: {IN, IL, MO, TN, OH, WV, VA},
     LA: {AR, TX, MS},
     ME: {NH},
-    MD: {PA,WV,VA},
+    MD: {PA,WV,VA,DE},
     MA: {NY,VT,NH,CT,RI},
     MI: {IL, WI, IN, OH},
     MN: {ND, SD, IA, WI},
     MS: {TN, AR, LA, AL},
     MO: {IA, NE, KS, OK, AR, IL, KY, TN},
     MT: {ID, WY, SD, ND},
-    NE: {SD, WY, CO, KS, MO, IA},
+    NE: {SD, CO, WY, KS, MO, IA},
     NV: {OR, ID, UT, AZ, CA},
     NH: {ME,VT,MA},
     NJ: {NY,PA,DE},
@@ -235,22 +240,22 @@ united_states_of_america = {
     NY: {PA,NJ,CT,MA,VT},
     NC: {GA, TN, SC, VA},
     ND: {MT, SD, MN},
-    OH: {MI, IN, KY, WV},
+    OH: {MI, IN, KY, WV,PA},
     OK: {KS, CO, NM, TX, AR, MO},
     OR: {WA, ID, NV, CA},
-    PA: {OH,WV,MA,DE,NJ,NY},
+    PA: {OH,WV,DE,NJ,NY,MD},
     RI: {CT,MA},
     SC: {GA, NC},
     SD: {ND, MT, WY, NE, MN, IA},
-    TN: {KY, MO, AR, MS, MO, AL, GA, NC},
+    TN: {KY,AR, MS, MO, AL, GA, NC,VA},
     TX: {OK, NM, AR, LA},
     UT: {ID, NV, WY, CO, AZ, NM},
     VT: {MA,NY,NH},
-    VA: {WV, KY, NC,TN},
+    VA: {WV, KY, NC,TN,MD},
     WA: {OR,ID,AK},
-    WV: {OH, VA, KY,MA,PA},
-    WI: {MN, IA, IL, MI, IN},
-    WY: {MT, SD, NE, CO, UT, ID},
+    WV: {OH, VA, KY,PA,MD},
+    WI: {MN, IL, MI, IA},
+    WY: {MT, SD,NE, CO, UT, ID},
 }
 
 us_colors = {
@@ -414,6 +419,7 @@ def makeBrowser(cname):
 
 
 if __name__ ==  '__main__':
+
     print("1. America      2. Australia")
     country_name = int(input("Which country would you like to select: "))
 
@@ -433,6 +439,7 @@ if __name__ ==  '__main__':
         color = au_colors
         abbr = AUWA
 
+    check_valid(united_states_of_america)
     print("1. DFS      2. DFS with Forward Chaining      3. DFS with Forward Chaining and Singleton")
     algo_name = int(input("Which algorithm would you like to select: "))
 

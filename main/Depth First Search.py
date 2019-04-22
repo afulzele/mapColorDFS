@@ -414,16 +414,6 @@ def makeBrowser(cname):
 
 
 if __name__ ==  '__main__':
-    # if (solve_problem(WA,australia,aus_colors)):
-    #     print(colored)
-    # colored.clear()
-    # if (solve_problem(SA,australia,aus_colors)):
-    #     print(colored)
-    # colored.clear()
-    # if (solve_problem(NSW, australia, aus_colors)):
-    #     print(colored)
-    # colored.clear()
-
     print("1. America      2. Australia")
     country_name = int(input("Which country would you like to select: "))
 
@@ -457,9 +447,7 @@ if __name__ ==  '__main__':
         singleton = 1
         if solve_problem_DFS_FC(abbr, fullname, color):
             print("Count",len(colored.keys()))
-            print(colored)
-
-    
+            print(colored)    
 
     makeBrowser(cname)
     colored.clear()

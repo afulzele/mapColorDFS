@@ -3,6 +3,8 @@ import webbrowser
 
 colored = {}
 
+singleton = 0
+
 #DFS
 def solve_problem_DFS(state,country,country_colors):
     increment_color = 0
@@ -88,6 +90,15 @@ def solve_problem_DFS_FC(state,country,country_colors):
         #print("Check  a before assigning color to a state",a)
         a[state] = [colored[state]]
         #print("Check a after assigning color to a state",a)
+
+        print("Neighbours of State before Sorting",state,country[state])
+        if singleton == 1:
+            #a_list = [[neigh,len(a[neigh])] for neigh in country[state]]
+            country[state] = sorted(country[state],key = lambda x:len(country_colors[x]),reverse = False)
+            #print(a_list)
+            #country[state] = list(map(lambda x: x[0],a_list))
+            print("Neighbours of State after sorting", state, country[state])
+
         for neigh in country[state]:
             if neigh not in colored:
                 #print("Calling neighbour",neigh)
@@ -432,7 +443,7 @@ if __name__ ==  '__main__':
         color = au_colors
         abbr = AUWA
 
-    print("1. DFS      2. DFS with Forward Chaining")
+    print("1. DFS      2. DFS with Forward Chaining      3. DFS with Forward Chaining and Singleton")
     algo_name = int(input("Which algorithm would you like to select: "))
 
     if algo_name == 1:
@@ -442,8 +453,11 @@ if __name__ ==  '__main__':
         if (solve_problem_DFS_FC(abbr, fullname, color)):
             print("Count",len(colored.keys()))
             print(colored)
-
-
+    if algo_name == 3:
+        singleton = 1
+        if solve_problem_DFS_FC(abbr, fullname, color):
+            print("Count",len(colored.keys()))
+            print(colored)
 
     
 

@@ -74,7 +74,7 @@ def solve_problem_DFS(state,country,country_colors):
     # Loop on all the colors value
     for color in get_colors(state,country,country_colors):
         for neigh in country[state]:
-            if neigh in colored and colored[j] == color:
+            if neigh in colored and colored[neigh] == color:
                 increment_color = 1
                 break
         if increment_color == 1:
@@ -106,7 +106,7 @@ def reduce_domain(state,country,cntry_colors):
     for j in country[state]:
         if colored[state] in cntry_colors[j]:
             cntry_colors[j].remove(colored[state])
-            print("Removed Color ")
+            # print("Removed Color ")
 
 # check if with the given color no neighbour will have empty domain
 def reduce_domain_forward_check(color,state,country,cntry_colors):
@@ -133,8 +133,6 @@ def solve_problem_DFS_FC(state,country,country_colors):
     for color in get_colors(state,country,country_colors):
         # Taking Colours of Country into temporary Variable since it will be used for backtracking
         a = copy.deepcopy(b)
-        if reduce_domain_forward_check(color,state,country,a) == False:
-            continue
         colored[state] = color
         print("Trying to give color %s to %s" %(color,state))
         reduce_domain(state, country, a)
@@ -143,14 +141,15 @@ def solve_problem_DFS_FC(state,country,country_colors):
             country[state] = sorted(country[state],key = lambda x:len(country_colors[x]),reverse = False)
         # Calling the neighbour Value using DFS
         for neigh in get_neighbours(state,country,a):
-            print("Before Calling neighbour",neigh, a[neigh])
             if neigh not in colored:
                 #DFS : - if no values found for child - pop the value and check for another value
                 if (solve_problem_DFS_FC(neigh,country,a)) == False :
                     colored.pop(state)
                     flag = 1
+                    print("Cannot give color to",state)
                     break
         if flag == 0:
+            print("Gave color %s to %s" % (colored[state], state))
             return True
         else:
             # Check for another Value if Child values not found for current one

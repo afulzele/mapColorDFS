@@ -19,23 +19,26 @@ def get_neighbours(state,country,country_colors):
         return country[state]
     else:
         if singleton == 0:
-            #Get Neighbours based on heuristic value
             candidates_with_add_info = [
-            (
-            -len({colored[neigh] for neigh in country[n] if neigh     in colored}), #Minimum Remaining Value Hueristic
-            -len({neigh          for neigh in country[n] if neigh not in colored}), # Degree Heuristic
-            #then calculate the number of neighbours)
-            n
-            ) for n in country[state] if n not in colored]
-        else:
-            candidates_with_add_info = [
-            (
+                (
                 -len({colored[neigh] for neigh in country[n] if neigh in colored}),#Minimum Remaining Value Hueristic
                 -len({neigh for neigh in country[n] if neigh not in colored}),# Degree Heuristic
-                len(country_colors[n]),     # For singleton Sort the neighbours based on their Colors Remaining
-                n #"Neigbours"
+                n
+                ) for n in country[state] if n not in colored]
+            #Get Neighbours based on heuristic value
+        else:
+            candidates_with_add_info = [
+                (
+                # For singleton Sort the neighbours based on their Colors Remaining
+                -100 if (len(country_colors[n]) == 1) else 100,
+                -len({colored[neigh] for neigh in country[n] if neigh     in colored}), #Minimum Remaining Value Hueristic
+                -len({neigh          for neigh in country[n] if neigh not in colored}), # Degree Heuristic
+                #then calculate the number of neighbours)
+                n
+            #"Neigbours"
             ) for n in country[state] if n not in colored]
         candidates_with_add_info.sort()
+        print(candidates_with_add_info, "--Sort - ()()()()()")
         # Return Neighbours in an ordered way with given - heurisitc
         if singleton == 0:
             candidates = [n for _,_,n in candidates_with_add_info]
@@ -70,8 +73,8 @@ def solve_problem_DFS(state,country,country_colors):
     global backtracking
     # Loop on all the colors value
     for color in get_colors(state,country,country_colors):
-        for j in country[state]:
-            if j in colored and colored[j] == color:
+        for neigh in country[state]:
+            if neigh in colored and colored[j] == color:
                 increment_color = 1
                 break
         if increment_color == 1:
@@ -80,10 +83,10 @@ def solve_problem_DFS(state,country,country_colors):
         colored[state] = color
         print("Trying to give color %s to %s" %(colored[state],state))
         # Calling the neighbour Value using DFS
-        for k in get_neighbours(state,country,country_colors):
-            if k not in colored:
+        for neigh in get_neighbours(state,country,country_colors):
+            if neigh not in colored:
                 #DFS : - if no values found for child - pop the value and check for another value
-                if (solve_problem_DFS(k, country, country_colors) == False):
+                if (solve_problem_DFS(neigh, country, country_colors) == False):
                     colored.pop(state)
                     flag = 1
                     break
@@ -98,11 +101,14 @@ def solve_problem_DFS(state,country,country_colors):
     return False
 
 #DFS with Forward Chaining
+# Remove Colors from neighbours
 def reduce_domain(state,country,cntry_colors):
     for j in country[state]:
         if colored[state] in cntry_colors[j]:
             cntry_colors[j].remove(colored[state])
+            print("Removed Color ")
 
+# check if with the given color no neighbour will have empty domain
 def reduce_domain_forward_check(color,state,country,cntry_colors):
     p = copy.deepcopy(cntry_colors)
     for j in country[state]:
@@ -112,11 +118,13 @@ def reduce_domain_forward_check(color,state,country,cntry_colors):
             return False
     return True
 
+# Check Color remaining for a given state is not empty
 def check_domain(state,cntry_colors):
     if not (cntry_colors[state]) :
         return False
     return True
 
+# DFS with Forward Chaining and singleton
 def solve_problem_DFS_FC(state,country,country_colors):
     flag = 0
     b = copy.deepcopy(country_colors)
@@ -131,11 +139,11 @@ def solve_problem_DFS_FC(state,country,country_colors):
         print("Trying to give color %s to %s" %(color,state))
         reduce_domain(state, country, a)
         a[state] = color
-        print("Neighbours of State before Sorting",state,country[state])
         if singleton == 1 and dfs_with_heuristic == 0:
             country[state] = sorted(country[state],key = lambda x:len(country_colors[x]),reverse = False)
         # Calling the neighbour Value using DFS
-        for neigh in get_neighbours(state,country,country_colors):
+        for neigh in get_neighbours(state,country,a):
+            print("Before Calling neighbour",neigh, a[neigh])
             if neigh not in colored:
                 #DFS : - if no values found for child - pop the value and check for another value
                 if (solve_problem_DFS_FC(neigh,country,a)) == False :

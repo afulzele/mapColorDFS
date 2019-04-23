@@ -4,25 +4,89 @@ import webbrowser
 colored = {}
 
 singleton = 0
-
+dfs_with_heuristic = 0
+def check_valid(graph):
+    for node,nexts in graph.items():
+        assert(node not in nexts) # # no node linked to itself
+        for next in nexts:
+            assert(next in graph and node in graph[next]) # A linked to B implies B linked to A
 #DFS
+
+def get_neighbours(state,country,country_colors):
+    if dfs_with_heuristic == 0:
+        return country[state]
+    else:
+        if singleton == 0:
+            candidates_with_add_info = [
+            (
+            -len({colored[neigh] for neigh in country[n] if neigh     in colored}), # nb_forbidden_colors(nrighbour with colors ?)
+            -len({neigh          for neigh in country[n] if neigh not in colored}), # minus nb_uncolored_neighbour(if neigh is not in color list
+            #then calculate the number of neighbours)
+            n
+            ) for n in country[state] if n not in colored]
+        else:
+            candidates_with_add_info = [
+            (
+                -len({colored[neigh] for neigh in country[n] if neigh in colored}),
+                # nb_forbidden_colors(nrighbour with colors ?)
+                -len({neigh for neigh in country[n] if neigh not in colored}),
+                # minus nb_uncolored_neighbour(if neigh is not in color list
+                # then calculate the number of neighbours)
+                len(country_colors[n]),
+                n
+            ) for n in country[state] if n not in colored]
+
+        print(candidates_with_add_info,"()()()()()")
+        candidates_with_add_info.sort()
+        print(candidates_with_add_info,"--Sort - ()()()()()")
+        if singleton == 0:
+            candidates = [n for _,_,n in candidates_with_add_info]
+        else:
+            candidates = [n for _,_,_,n in candidates_with_add_info]
+        return candidates
+
+def get_colors(state,country,country_colors):
+    if dfs_with_heuristic == 0:
+        return country_colors[state]
+    else:
+        a = []
+        for color in country_colors[state]:
+            no_of_colors = 0
+            a.append([color])
+            #print("a",a)
+            for neigh in country[state]:
+                if color in country_colors[neigh]:
+                    no_of_colors = no_of_colors + len(country_colors[neigh]) - 1
+                else:
+                    no_of_colors = no_of_colors + len(country_colors[neigh])
+            #print ("Index Of Color",a.index(color))
+            a[a.index([color])].append(no_of_colors)
+        #print(a)
+        a = sorted(a,key = lambda x:x[1],reverse = True)
+        a = [x[0] for x in a]
+        #print("a after sorting ",a)
+        return a
+
 def solve_problem_DFS(state,country,country_colors):
     increment_color = 0
     flag = 0
-    for i in range(len(country_colors[state])):
+    #print("Country Colors",country_colors)
+    for color in get_colors(state,country,country_colors):
+        # if lsv(state,country,country_colors,color) == False:
+
         for j in country[state]:
             #print("country_colors[state][i]",j,i,country_colors[state][i])
-            if j in colored and colored[j] == country_colors[state][i]:
+            if j in colored and colored[j] == color:
                 #print("break",state)
                 increment_color = 1
                 break
         if increment_color == 1:
             increment_color = 0
             continue
-        colored[state] = country_colors[state][i]
-        #print("Trying to give color %s to %s" %(colored[state],state))
+        colored[state] = color
+        print("Trying to give color %s to %s" %(colored[state],state))
         #print(state,colored[state])
-        for k in country[state]:
+        for k in get_neighbours(state,country,country_colors):
             if k not in colored:
                 if (solve_problem_DFS(k, country, country_colors) == False):
                     colored.pop(state)
@@ -48,8 +112,8 @@ def reduce_domain_forward_check(color,state,country,cntry_colors):
     p = copy.deepcopy(cntry_colors)
     for j in country[state]:
         #print("---------------------------------------------------Color",p[state][color],p[j])
-        if p[state][color] in p[j] :
-            p[j].remove(p[state][color])
+        if color in p[j] :
+            p[j].remove(color)
         #print("Checking Empty List")
         if not check_domain(j,p):
             #print("returned False from Reduce Domain Forward check for state",state)
@@ -67,14 +131,14 @@ def solve_problem_DFS_FC(state,country,country_colors):
     flag = 0
     popped = 0
     b = copy.deepcopy(country_colors)
-    for i in range(len(b[state])):
+    for color in get_colors(state,country,country_colors):
         # Taking Colours of Country into temporary Variable since it will be used for backtracking
         a = copy.deepcopy(b)
         # if popped == 0:
         #print("State =  a[state]",len(a[state]))
         #print("country_colors[state][i]", state, i, a[state])
         #print("Check a before reduce domain forward check", a)
-        if reduce_domain_forward_check(i,state,country,a) == False:
+        if reduce_domain_forward_check(color,state,country,a) == False:
             #print("Got False")
             #print("Check a after reduce domain forward check and got false", a)
             # if i < len(b[state]) - 1:
@@ -82,24 +146,24 @@ def solve_problem_DFS_FC(state,country,country_colors):
             # else:
             #     break
         #print("country_colors[state][i]",state,i,a[state])
-        colored[state] = b[state][i]
-        print("Trying to give color %s to %s" %(colored[state],state))
+        colored[state] = color
+        print("Trying to give color %s to %s" %(color,state))
         reduce_domain(state, country, a)
         #for j in country[state]:
             #print("Neighbour Colors Value",j,a[j])
         #print("Check  a before assigning color to a state",a)
-        a[state] = [colored[state]]
+        a[state] = color
         #print("Check a after assigning color to a state",a)
 
         print("Neighbours of State before Sorting",state,country[state])
-        if singleton == 1:
+        if singleton == 1 and dfs_with_heuristic == 0:
             #a_list = [[neigh,len(a[neigh])] for neigh in country[state]]
             country[state] = sorted(country[state],key = lambda x:len(country_colors[x]),reverse = False)
             #print(a_list)
             #country[state] = list(map(lambda x: x[0],a_list))
             print("Neighbours of State after sorting", state, country[state])
 
-        for neigh in country[state]:
+        for neigh in get_neighbours(state,country,country_colors):
             if neigh not in colored:
                 #print("Calling neighbour",neigh)
                 if (solve_problem_DFS_FC(neigh,country,a)) == False :
@@ -204,30 +268,30 @@ united_states_of_america = {
     AL: {GA, FL, TN, MS},
     AK: {WA},
     AZ: {CA, NV, UT, CO, NM},
-    AR: {MO, OK, TX, LA, TN, MS},
+    AR: {MO, OK, TX, LA, TN, MS },
     CA: {OR, NV, AZ,HI},
     CO: {WY, NE, KS, OK, NM, AZ, UT},
-    CT: {NY,MA},
-    DE: {MD,PA},
+    CT: {NY,RI,MA},
+    DE: {MD,PA,NJ},
     FL: {AL, GA},
     GA: {SC, NC, TN, AL, FL},
     HI: {CA},
     ID: {WA, MT, OR, WY, UT, NV},
     IL: {WI, IA, MO, KY, IN, MI},
-    IN: {MI, WI, IL, KY, OH},
+    IN: {MI, IL, KY, OH},
     IA: {MN, SD, NE, MO, WI, IL},
     KS: {NE, CO, OK, MO},
     KY: {IN, IL, MO, TN, OH, WV, VA},
     LA: {AR, TX, MS},
     ME: {NH},
-    MD: {PA,WV,VA},
+    MD: {PA,WV,VA,DE},
     MA: {NY,VT,NH,CT,RI},
     MI: {IL, WI, IN, OH},
     MN: {ND, SD, IA, WI},
     MS: {TN, AR, LA, AL},
     MO: {IA, NE, KS, OK, AR, IL, KY, TN},
     MT: {ID, WY, SD, ND},
-    NE: {SD, WY, CO, KS, MO, IA},
+    NE: {SD, CO, WY, KS, MO, IA},
     NV: {OR, ID, UT, AZ, CA},
     NH: {ME,VT,MA},
     NJ: {NY,PA,DE},
@@ -235,22 +299,22 @@ united_states_of_america = {
     NY: {PA,NJ,CT,MA,VT},
     NC: {GA, TN, SC, VA},
     ND: {MT, SD, MN},
-    OH: {MI, IN, KY, WV},
+    OH: {MI, IN, KY, WV,PA},
     OK: {KS, CO, NM, TX, AR, MO},
     OR: {WA, ID, NV, CA},
-    PA: {OH,WV,MA,DE,NJ,NY},
+    PA: {OH,WV,DE,NJ,NY,MD},
     RI: {CT,MA},
     SC: {GA, NC},
     SD: {ND, MT, WY, NE, MN, IA},
-    TN: {KY, MO, AR, MS, MO, AL, GA, NC},
+    TN: {KY,AR, MS, MO, AL, GA, NC,VA},
     TX: {OK, NM, AR, LA},
     UT: {ID, NV, WY, CO, AZ, NM},
     VT: {MA,NY,NH},
-    VA: {WV, KY, NC,TN},
+    VA: {WV, KY, NC,TN,MD},
     WA: {OR,ID,AK},
-    WV: {OH, VA, KY,MA,PA},
-    WI: {MN, IA, IL, MI, IN},
-    WY: {MT, SD, NE, CO, UT, ID},
+    WV: {OH, VA, KY,PA,MD},
+    WI: {MN, IL, MI, IA},
+    WY: {MT, SD,NE, CO, UT, ID},
 }
 
 us_colors = {
@@ -414,8 +478,9 @@ def makeBrowser(cname):
 
 
 if __name__ ==  '__main__':
+
     print("1. America      2. Australia")
-    country_name = int(input("Which country would you like to select: "))
+    country_name = int(input("Which country would you like to select:\n "))
 
     cname = ""
     fullname = {}
@@ -433,8 +498,9 @@ if __name__ ==  '__main__':
         color = au_colors
         abbr = AUWA
 
-    print("1. DFS      2. DFS with Forward Chaining      3. DFS with Forward Chaining and Singleton")
-    algo_name = int(input("Which algorithm would you like to select: "))
+    check_valid(united_states_of_america)
+    print("----------------------\n1. DFS\n2. DFS with Forward Chaining\n3. DFS with Forward Chaining and Singleton\n4. DFS With Heuristic\n5. DFS with Heuristic and Forward Chaining\n6. DFS with heuristic, Forward Chaining and singleton\n----------------------")
+    algo_name = int(input("Which algorithm would you like to select:\n"))
 
     if algo_name == 1:
         if (solve_problem_DFS(abbr, fullname, color)):
@@ -447,7 +513,20 @@ if __name__ ==  '__main__':
         singleton = 1
         if solve_problem_DFS_FC(abbr, fullname, color):
             print("Count",len(colored.keys()))
-            print(colored)    
+            print(colored)
+    if algo_name == 4:
+        dfs_with_heuristic = 1
+        if (solve_problem_DFS(abbr, fullname, color)):
+            print(colored)
+    if algo_name == 5:
+        dfs_with_heuristic = 1
+        if (solve_problem_DFS_FC(abbr, fullname, color)):
+            print(colored)
+    if algo_name == 6:
+        dfs_with_heuristic = 1
+        singleton = 1
+        if (solve_problem_DFS_FC(abbr, fullname, color)):
+            print(colored)
 
     makeBrowser(cname)
     colored.clear()

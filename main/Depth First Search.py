@@ -1,4 +1,4 @@
-    import copy
+import copy
 import webbrowser
 import timeit
 colored = {}
@@ -19,7 +19,7 @@ def get_neighbours(state,country,country_colors):
         return country[state]
     else:
         if singleton == 0:
-            candidates_with_add_info = [
+            candts_with_add_info = [
                 (
                 -len({colored[neigh] for neigh in country[n] if neigh in colored}),#Minimum Remaining Value Hueristic
                 -len({neigh for neigh in country[n] if neigh not in colored}),# Degree Heuristic
@@ -27,7 +27,7 @@ def get_neighbours(state,country,country_colors):
                 ) for n in country[state] if n not in colored]
             #Get Neighbours based on heuristic value
         else:
-            candidates_with_add_info = [
+            candts_with_add_info = [
                 (
                 # For singleton Sort the neighbours based on their Colors Remaining
                 -100 if (len(country_colors[n]) == 1) else 100,
@@ -37,14 +37,14 @@ def get_neighbours(state,country,country_colors):
                 n
             #"Neigbours"
             ) for n in country[state] if n not in colored]
-        candidates_with_add_info.sort()
-        print(candidates_with_add_info, "--Sort - ()()()()()")
+        candts_with_add_info.sort()
+        print(candts_with_add_info, "--Sort - ()()()()()")
         # Return Neighbours in an ordered way with given - heurisitc
         if singleton == 0:
-            candidates = [n for _,_,n in candidates_with_add_info]
+            canddts= [n for _,_,n in candts_with_add_info]
         else:
-            candidates = [n for _,_,_,n in candidates_with_add_info]
-        return candidates
+            canddts = [n for _,_,_,n in candts_with_add_info]
+        return canddts
 
 def get_colors(state,country,country_colors):
     # Get Colours
@@ -127,6 +127,7 @@ def check_domain(state,cntry_colors):
 # DFS with Forward Chaining and singleton
 def solve_problem_DFS_FC(state,country,country_colors):
     flag = 0
+    increment_color = 0
     b = copy.deepcopy(country_colors)
     global backtracking
     # Loop on all the colors value

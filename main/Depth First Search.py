@@ -97,6 +97,7 @@ def solve_problem_DFS(state,country,country_colors):
             flag = 0
             continue
     # If none of the values work then backtrack
+    print("No Value for state%s: - Backtracking "%(state))
     backtracking = backtracking + 1
     return False
 
@@ -133,20 +134,24 @@ def solve_problem_DFS_FC(state,country,country_colors):
     # Loop on all the colors value
     for color in get_colors(state,country,country_colors):
         # Taking Colours of Country into temporary Variable since it will be used for backtracking
+        a = copy.deepcopy(b)
         for neigh in country[state]:
             if neigh in colored and colored[neigh] == color:
+                country_colors[neigh] = b[neigh] = a[neigh] = [color]
                 increment_color = 1
                 break
         if increment_color == 1:
             increment_color = 0
             continue
-        a = copy.deepcopy(b)
         colored[state] = color
         print("Trying to give color %s to %s" %(color,state))
         reduce_domain(state, country, a)
-        a[state] = color
+        print("Colors of all state after reducing their domain\n",a)
+        a[state] = [color]
         if singleton == 1 and dfs_with_heuristic == 0:
+            print("Neighbours of country(Singleton) %s - %s"%(state,country[state]))
             country[state] = sorted(country[state],key = lambda x:len(country_colors[x]),reverse = False)
+            print(" After Sorting - Neighbours of country(Singleton) %s - %s"%(state,country[state]))
         # Calling the neighbour Value using DFS
         for neigh in get_neighbours(state,country,a):
             if neigh not in colored:
@@ -163,6 +168,7 @@ def solve_problem_DFS_FC(state,country,country_colors):
             # Check for another Value if Child values not found for current one
             flag = 0
             continue
+    print("No Value for state%s: - Backtracking "%(state))
     # If none of the values work then backtrack
     backtracking = backtracking + 1
     return False
@@ -483,11 +489,13 @@ if __name__ ==  '__main__':
         print("Enter a proper value")
         exit(0)
     check_valid(united_states_of_america)
-    print("----------------------\n1. DFS\n2. DFS with Forward Chaining\n3. DFS with Forward Chaining and Singleton\n4. DFS With Heuristic\n5. DFS with Heuristic and Forward Chaining\n6. DFS with heuristic, Forward Chaining and singleton\n----------------------")
+    print("----------------------\n1. DFS\n2. DFS with Forward Checking\n3. DFS with Forward Checking and Singleton\n4. DFS With Heuristic\n5. DFS with Heuristic and Forward Checking\n6. DFS with heuristic, Forward Checking and singleton\n----------------------")
     algo_name = int(input("Which algorithm would you like to select:\n"))
 
     start = timeit.default_timer()
-    print("Starting with State",state)
+
+    print("Starting with State",abbr)
+
     if algo_name == 1:
         if (solve_problem_DFS(abbr, fullname, color)):
             print(colored)

@@ -483,8 +483,7 @@ if __name__ ==  '__main__':
         print("Enter a proper value")
         exit(0)
     check_valid(united_states_of_america)
-    print("1. DFS      2. DFS with Forward Chaining      3. DFS with Forward Chaining and Singleton")
-    print("4.DFS With Heuristic        5.DFS with Heuristic and Forward Chaining 6. DFS with heuristic, Forward Chaining and singleton ")
+    print("----------------------\n1. DFS\n2. DFS with Forward Chaining\n3. DFS with Forward Chaining and Singleton\n4. DFS With Heuristic\n5. DFS with Heuristic and Forward Chaining\n6. DFS with heuristic, Forward Chaining and singleton\n----------------------")
     algo_name = int(input("Which algorithm would you like to select:\n"))
 
     start = timeit.default_timer()

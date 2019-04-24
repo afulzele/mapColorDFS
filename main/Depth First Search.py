@@ -1,11 +1,12 @@
 import copy
 import webbrowser
-
+import timeit
 colored = {}
-
+backtracking = 0
 singleton = 0
 dfs_with_heuristic = 0
 def check_valid(graph):
+    "Check the graph is valid i.e States are linked properly to each other"
     for node,nexts in graph.items():
         assert(node not in nexts) # # no node linked to itself
         for next in nexts:
@@ -13,32 +14,29 @@ def check_valid(graph):
 #DFS
 
 def get_neighbours(state,country,country_colors):
+    ""
     if dfs_with_heuristic == 0:
         return country[state]
     else:
         if singleton == 0:
+            #Get Neighbours based on heuristic value
             candidates_with_add_info = [
             (
-            -len({colored[neigh] for neigh in country[n] if neigh     in colored}), # nb_forbidden_colors(nrighbour with colors ?)
-            -len({neigh          for neigh in country[n] if neigh not in colored}), # minus nb_uncolored_neighbour(if neigh is not in color list
+            -len({colored[neigh] for neigh in country[n] if neigh     in colored}), #Minimum Remaining Value Hueristic
+            -len({neigh          for neigh in country[n] if neigh not in colored}), # Degree Heuristic
             #then calculate the number of neighbours)
             n
             ) for n in country[state] if n not in colored]
         else:
             candidates_with_add_info = [
             (
-                -len({colored[neigh] for neigh in country[n] if neigh in colored}),
-                # nb_forbidden_colors(nrighbour with colors ?)
-                -len({neigh for neigh in country[n] if neigh not in colored}),
-                # minus nb_uncolored_neighbour(if neigh is not in color list
-                # then calculate the number of neighbours)
-                len(country_colors[n]),
-                n
+                -len({colored[neigh] for neigh in country[n] if neigh in colored}),#Minimum Remaining Value Hueristic
+                -len({neigh for neigh in country[n] if neigh not in colored}),# Degree Heuristic
+                len(country_colors[n]),     # For singleton Sort the neighbours based on their Colors Remaining
+                n #"Neigbours"
             ) for n in country[state] if n not in colored]
-
-        print(candidates_with_add_info,"()()()()()")
         candidates_with_add_info.sort()
-        print(candidates_with_add_info,"--Sort - ()()()()()")
+        # Return Neighbours in an ordered way with given - heurisitc
         if singleton == 0:
             candidates = [n for _,_,n in candidates_with_add_info]
         else:
@@ -46,38 +44,34 @@ def get_neighbours(state,country,country_colors):
         return candidates
 
 def get_colors(state,country,country_colors):
+    # Get Colours
     if dfs_with_heuristic == 0:
         return country_colors[state]
     else:
+        # Get Colors based on Least Constraining Value
         a = []
         for color in country_colors[state]:
             no_of_colors = 0
             a.append([color])
-            #print("a",a)
             for neigh in country[state]:
                 if color in country_colors[neigh]:
                     no_of_colors = no_of_colors + len(country_colors[neigh]) - 1
                 else:
                     no_of_colors = no_of_colors + len(country_colors[neigh])
-            #print ("Index Of Color",a.index(color))
             a[a.index([color])].append(no_of_colors)
-        #print(a)
         a = sorted(a,key = lambda x:x[1],reverse = True)
         a = [x[0] for x in a]
-        #print("a after sorting ",a)
         return a
 
+# Solve DFS
 def solve_problem_DFS(state,country,country_colors):
     increment_color = 0
     flag = 0
-    #print("Country Colors",country_colors)
+    global backtracking
+    # Loop on all the colors value
     for color in get_colors(state,country,country_colors):
-        # if lsv(state,country,country_colors,color) == False:
-
         for j in country[state]:
-            #print("country_colors[state][i]",j,i,country_colors[state][i])
             if j in colored and colored[j] == color:
-                #print("break",state)
                 increment_color = 1
                 break
         if increment_color == 1:
@@ -85,9 +79,10 @@ def solve_problem_DFS(state,country,country_colors):
             continue
         colored[state] = color
         print("Trying to give color %s to %s" %(colored[state],state))
-        #print(state,colored[state])
+        # Calling the neighbour Value using DFS
         for k in get_neighbours(state,country,country_colors):
             if k not in colored:
+                #DFS : - if no values found for child - pop the value and check for another value
                 if (solve_problem_DFS(k, country, country_colors) == False):
                     colored.pop(state)
                     flag = 1
@@ -98,91 +93,63 @@ def solve_problem_DFS(state,country,country_colors):
         else:
             flag = 0
             continue
+    # If none of the values work then backtrack
+    backtracking = backtracking + 1
     return False
 
 #DFS with Forward Chaining
 def reduce_domain(state,country,cntry_colors):
     for j in country[state]:
         if colored[state] in cntry_colors[j]:
-            # print("Removing %s color from %s ", j, colored[state])
             cntry_colors[j].remove(colored[state])
 
 def reduce_domain_forward_check(color,state,country,cntry_colors):
-    #print ("inside reduce domain forward check")
     p = copy.deepcopy(cntry_colors)
     for j in country[state]:
-        #print("---------------------------------------------------Color",p[state][color],p[j])
         if color in p[j] :
             p[j].remove(color)
-        #print("Checking Empty List")
         if not check_domain(j,p):
-            #print("returned False from Reduce Domain Forward check for state",state)
             return False
     return True
 
 def check_domain(state,cntry_colors):
-    #print ("Inside Check Domain")
     if not (cntry_colors[state]) :
-        #print("the list is empty",state)
         return False
     return True
 
 def solve_problem_DFS_FC(state,country,country_colors):
     flag = 0
-    popped = 0
     b = copy.deepcopy(country_colors)
+    global backtracking
+    # Loop on all the colors value
     for color in get_colors(state,country,country_colors):
         # Taking Colours of Country into temporary Variable since it will be used for backtracking
         a = copy.deepcopy(b)
-        # if popped == 0:
-        #print("State =  a[state]",len(a[state]))
-        #print("country_colors[state][i]", state, i, a[state])
-        #print("Check a before reduce domain forward check", a)
         if reduce_domain_forward_check(color,state,country,a) == False:
-            #print("Got False")
-            #print("Check a after reduce domain forward check and got false", a)
-            # if i < len(b[state]) - 1:
             continue
-            # else:
-            #     break
-        #print("country_colors[state][i]",state,i,a[state])
         colored[state] = color
         print("Trying to give color %s to %s" %(color,state))
         reduce_domain(state, country, a)
-        #for j in country[state]:
-            #print("Neighbour Colors Value",j,a[j])
-        #print("Check  a before assigning color to a state",a)
         a[state] = color
-        #print("Check a after assigning color to a state",a)
-
         print("Neighbours of State before Sorting",state,country[state])
         if singleton == 1 and dfs_with_heuristic == 0:
-            #a_list = [[neigh,len(a[neigh])] for neigh in country[state]]
             country[state] = sorted(country[state],key = lambda x:len(country_colors[x]),reverse = False)
-            #print(a_list)
-            #country[state] = list(map(lambda x: x[0],a_list))
-            print("Neighbours of State after sorting", state, country[state])
-
+        # Calling the neighbour Value using DFS
         for neigh in get_neighbours(state,country,country_colors):
             if neigh not in colored:
-                #print("Calling neighbour",neigh)
+                #DFS : - if no values found for child - pop the value and check for another value
                 if (solve_problem_DFS_FC(neigh,country,a)) == False :
                     colored.pop(state)
-                    #print("Values of Color for all the states after popping", state,a)
                     flag = 1
                     break
         if flag == 0:
             return True
         else:
-            #print("popped the colors for ", state, a[state])
+            # Check for another Value if Child values not found for current one
             flag = 0
-            #popped = 1
-             # if i < len(b[state]) - 1:
             continue
-            # else:
-            #     break
-    #print("No Values found for state",state,a[state])
-    #print ("Values of Color for all the states",a)
+    # If none of the values work then backtrack
+    backtracking = backtracking + 1
     return False
 
 AUWA  = 'AU-WA'
@@ -497,36 +464,44 @@ if __name__ ==  '__main__':
         fullname = australia
         color = au_colors
         abbr = AUWA
-
+    else:
+        print("Enter a proper value")
+        exit(0)
     check_valid(united_states_of_america)
     print("----------------------\n1. DFS\n2. DFS with Forward Chaining\n3. DFS with Forward Chaining and Singleton\n4. DFS With Heuristic\n5. DFS with Heuristic and Forward Chaining\n6. DFS with heuristic, Forward Chaining and singleton\n----------------------")
     algo_name = int(input("Which algorithm would you like to select:\n"))
 
+    start = timeit.default_timer()
     if algo_name == 1:
         if (solve_problem_DFS(abbr, fullname, color)):
             print(colored)
-    if algo_name == 2:
+    elif algo_name == 2:
         if (solve_problem_DFS_FC(abbr, fullname, color)):
             print("Count",len(colored.keys()))
             print(colored)
-    if algo_name == 3:
+    elif algo_name == 3:
         singleton = 1
         if solve_problem_DFS_FC(abbr, fullname, color):
             print("Count",len(colored.keys()))
             print(colored)
-    if algo_name == 4:
+    elif algo_name == 4:
         dfs_with_heuristic = 1
         if (solve_problem_DFS(abbr, fullname, color)):
             print(colored)
-    if algo_name == 5:
+    elif algo_name == 5:
         dfs_with_heuristic = 1
         if (solve_problem_DFS_FC(abbr, fullname, color)):
             print(colored)
-    if algo_name == 6:
+    elif algo_name == 6:
         dfs_with_heuristic = 1
         singleton = 1
         if (solve_problem_DFS_FC(abbr, fullname, color)):
             print(colored)
-
+    else:
+        print("Enter a proper value")
+        exit(0)
+    stop = timeit.default_timer()
+    print('\nTime: ', stop - start)
+    print("Number of Backtracking:-",backtracking)
     makeBrowser(cname)
     colored.clear()

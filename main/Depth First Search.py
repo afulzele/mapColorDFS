@@ -1,4 +1,4 @@
-import copy
+    import copy
 import webbrowser
 import timeit
 colored = {}
@@ -132,6 +132,13 @@ def solve_problem_DFS_FC(state,country,country_colors):
     # Loop on all the colors value
     for color in get_colors(state,country,country_colors):
         # Taking Colours of Country into temporary Variable since it will be used for backtracking
+        for neigh in country[state]:
+            if neigh in colored and colored[neigh] == color:
+                increment_color = 1
+                break
+        if increment_color == 1:
+            increment_color = 0
+            continue
         a = copy.deepcopy(b)
         colored[state] = color
         print("Trying to give color %s to %s" %(color,state))

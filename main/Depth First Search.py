@@ -487,6 +487,7 @@ if __name__ ==  '__main__':
     algo_name = int(input("Which algorithm would you like to select:\n"))
 
     start = timeit.default_timer()
+    print("Starting with State",state)
     if algo_name == 1:
         if (solve_problem_DFS(abbr, fullname, color)):
             print(colored)
